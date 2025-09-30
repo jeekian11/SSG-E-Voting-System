@@ -4,10 +4,10 @@
       <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <div>
           <h1 class="text-3xl font-extrabold text-blue-800">
-            SSG Elections 2025
+            DTC Elections 2025
           </h1>
           <p class="mt-1 text-sm text-gray-500">
-            Welcome, **Voter**! Please cast your vote carefully.
+            Welcome, <strong>{{ voterInfo.name }}</strong>! Please cast your vote carefully!
           </p>
         </div>
         
@@ -15,12 +15,13 @@
           @click="handleLogout"
           class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition text-sm font-medium shadow-md"
         >
-          Logout
+          Back
         </button>
       </div>
     </header>
 
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      
       <div v-if="hasVoted" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6 rounded-md">
         <p class="font-bold">Vote Submitted</p>
         <p>Thank you! Your vote has already been cast for this election.</p>
@@ -28,6 +29,9 @@
 
       <div v-if="!ballot.length && !isLoading" class="text-center p-10 bg-white rounded-lg shadow-md">
           <p class="text-xl text-gray-500">The election ballot is not yet available.</p>
+      </div>
+      <div v-else-if="isLoading" class="text-center p-10 text-lg text-gray-600">
+        Loading ballot...
       </div>
 
       <form v-else-if="ballot.length && !hasVoted" @submit.prevent="confirmVoteSubmission" class="space-y-6">
@@ -40,12 +44,12 @@
 
           <div class="space-y-3">
             <div v-for="candidate in position.candidates" :key="candidate.id" 
-                 class="p-4 border rounded-lg cursor-pointer transition"
-                 :class="{
-                   'border-blue-500 bg-blue-50 ring-2 ring-blue-500': isSelected(position.id, candidate.id),
-                   'hover:bg-gray-50': !isSelected(position.id, candidate.id)
-                 }"
-                 @click="toggleSelection(position.id, candidate.id)"
+                  class="p-4 border rounded-lg cursor-pointer transition"
+                  :class="{
+                    'border-blue-500 bg-blue-50 ring-2 ring-blue-500': isSelected(position.id, candidate.id),
+                    'hover:bg-gray-50': !isSelected(position.id, candidate.id)
+                  }"
+                  @click="toggleSelection(position.id, candidate.id)"
             >
               <div class="flex items-center justify-between">
                 <div>
@@ -93,13 +97,11 @@ export default {
         const router = useRouter();
         const isLoading = ref(true);
         const isSubmitting = ref(false);
-        // hasVoted is now mainly used to display the 'Vote Submitted' message 
-        // temporarily after submission, not for persistence.
-        const hasVoted = ref(false); 
+        const hasVoted = ref(false); // Controls the temporary 'Vote Submitted' message
         const ballot = ref([]);
         const selections = ref({}); // { positionId: candidateId, ... }
 
-        // --- Data Initialization ---
+        // --- Mock Data ---
         const mockBallot = [
             { id: 1, name: 'President', candidates: [
                 { id: 101, name: 'Jeek Ian Niepes', courseYear: 'BSIS 3', platform: 'Better Wi-Fi and student lounges.' },
@@ -114,6 +116,13 @@ export default {
             ]},
         ];
 
+        // MOCK DATA for the logged-in user
+        const voterInfo = {
+            id: '2023-00123',
+            name: 'Jeek Ian Niepes',
+            gradeSection: 'BSIS 3'
+        };
+
         // --- Computed Properties ---
         const isBallotComplete = computed(() => {
             // Check if the number of selections equals the number of positions
@@ -123,13 +132,14 @@ export default {
         // --- Methods ---
         
         const fetchBallot = async () => {
-            // NOTE: Removed local storage check for 'voted' status (for demo purposes)
+            isLoading.value = true;
             
-            // MOCK data load
+            // MOCK data load delay
             await new Promise(resolve => setTimeout(resolve, 1000));
+            
             ballot.value = mockBallot;
             isLoading.value = false;
-            hasVoted.value = false; // Ensure it's false when the ballot loads
+            // NOTE: hasVoted is left as false to allow the ballot to display
         };
 
         const toggleSelection = (positionId, candidateId) => {
@@ -138,6 +148,7 @@ export default {
         };
 
         const isSelected = (positionId, candidateId) => {
+            // Note: positionId is parsed as number during initial data setup but used as string keys in selections.value
             return selections.value[positionId] === candidateId;
         };
 
@@ -148,7 +159,7 @@ export default {
             }
 
             // Simplified confirmation for a demo
-            const confirmation = confirm("Confirm submission? You can revote in this demo.");
+            const confirmation = confirm("Confirm submission? This action is permanent in a real election, but you can re-vote in this demo.");
             if (confirmation) {
                 submitVote();
             }
@@ -163,41 +174,33 @@ export default {
                     candidate_id: parseInt(candidate_id)
                 }));
 
-                // 2. API call to submit votes (Commented out for demo)
-                // await axios.post('/api/voter/submit', { votes });
-
-                // MOCK success actions
+                // 2. MOCK API call to submit votes (Simulate a network request)
+                console.log("Submitting votes:", votes);
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 
-                // *************************************************************
-                // KEY CHANGE: DO NOT set the 'voted' flag in local storage
-                // localStorage.setItem('voted', 'true'); // <-- REMOVED THIS LINE
-                // *************************************************************
+                // MOCK success actions
+                hasVoted.value = true; // Show the 'voted' success message temporarily
+                selections.value = {}; // Clear selections
+
+                alert("Vote submitted successfully! You are now being logged out.");
                 
-                // Show the 'voted' status temporarily (for a few seconds)
-                hasVoted.value = true; 
-
-                // Reset state to allow re-voting (or redirect to a neutral page)
-                selections.value = {}; 
-
-                // Redirect immediately, which simulates a fresh start for the demo
-                alert("Sample Vote Submitted! You are now being redirected.");
-                router.push({ name: 'VoterLogin' }); // Redirect to login to prove session clear
+                // Redirect back to login page after successful submission
+                router.push({ name: 'VoterLogin' }); 
 
             } catch (error) {
                 alert("Vote submission failed. Please try again or contact support.");
                 console.error("Submission Error:", error);
-                isSubmitting.value = false;
+                
             } finally {
                 isSubmitting.value = false;
             }
         };
 
         const handleLogout = () => {
-            // Clear only the user session flag
+            // Clear the user session flag
             localStorage.removeItem('isUser'); 
-            // IMPORTANT: Ensure no 'voted' persistence is left over from previous tests
-            localStorage.removeItem('voted'); 
+            // Also clear any mock persistence from other components for a clean slate
+            localStorage.removeItem('isVoted'); 
             
             router.push({ name: 'VoterLogin' });
         };
@@ -205,12 +208,14 @@ export default {
         // --- Helper for Styling ---
         const getBorderClass = (id) => {
             const colors = ['border-blue-500', 'border-green-500', 'border-purple-500', 'border-pink-500'];
+            // Use the position ID to cycle through colors
             return colors[id % colors.length];
         };
 
         onMounted(fetchBallot);
 
         return {
+            voterInfo,
             isLoading,
             isSubmitting,
             hasVoted,

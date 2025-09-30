@@ -63,8 +63,13 @@ const fetchStats = async () => {
 };
 
 const handleLogout = () => {
+  // Clear any admin session data
   localStorage.removeItem('isAdmin'); 
-  router.push({ name: 'AdminLogin' });
+  // Clear the general user session data, if applicable
+  localStorage.removeItem('user');
+  
+  // 🚀 FIX: Redirects the user to the VoterLogin route
+  router.push({ name: 'VoterLogin' });
 };
 
 onMounted(fetchStats);

@@ -1,6 +1,9 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-    <div class="w-full max-w-lg bg-white p-8 rounded-xl shadow-2xl">
+  <div 
+    class="min-h-screen flex items-center justify-center bg-cover bg-center p-4"
+    style="background-image: url('/dtc-logo.jpg')"
+  >
+    <div class="w-full max-w-lg bg-white p-8 rounded-xl shadow-2xl bg-opacity-90">
       <h1 class="text-3xl font-bold text-center text-blue-800 mb-4">
         Voter Registration
       </h1>
@@ -34,7 +37,7 @@
             type="text"
             required
             :disabled="isLoading"
-            placeholder="Juan Dela Cruz"
+            placeholder="Jeek Niepes"
             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200 focus:border-blue-500 disabled:bg-gray-50 disabled:opacity-75"
           />
         </div>
@@ -47,7 +50,7 @@
             type="text"
             required
             :disabled="isLoading"
-            placeholder="BSIT 3"
+            placeholder="BSIS  3"
             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200 focus:border-blue-500 disabled:bg-gray-50 disabled:opacity-75"
           />
         </div>
